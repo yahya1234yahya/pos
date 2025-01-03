@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen POS - Coffee Restaurant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        @keyframes flash {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(239, 68, 68, 0.1); }
+        }
+        .new-order-animation {
+            animation: flash 2s infinite;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-100">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-lg h-20">
+        <div class="max-w-full mx-auto px-4 h-full">
+            <div class="flex justify-between items-center h-full">
+                <div class="flex items-center space-x-8">
+                    <span class="text-2xl font-bold text-gray-900">Kitchen POS</span>
+                    <div class="flex space-x-4">
+                        <button id="allOrdersBtn" class="px-6 py-3 bg-primary text-white rounded-lg text-lg hover:bg-primary/90 transition-colors">
+                            All Orders
+                        </button>
+                        <button id="inProgressBtn" class="px-6 py-3 bg-white text-gray-700 rounded-lg text-lg hover:bg-gray-50 transition-colors">
+                            In Progress
+                        </button>
+                        <button id="completedBtn" class="px-6 py-3 bg-white text-gray-700 rounded-lg text-lg hover:bg-gray-50 transition-colors">
+                            Completed
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="kitchen-staff" class="text-xl text-gray-600">Kitchen Staff</span>
+                    <button class="bg-red-500 text-white px-6 py-4 rounded-md hover:bg-red-600 text-lg">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="h-[calc(100vh-5rem)] p-6">
+        <!-- Orders Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- New Order Card -->
+            <div class="bg-white rounded-lg shadow-lg p-6 new-order-animation">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <span class="text-xl font-bold">Order #1234</span>
+                        <span class="ml-2 bg-danger text-white px-3 py-1 rounded-full text-sm">New</span>
+                    </div>
+                    <span class="text-gray-500">Table 4</span>
+                </div>
+                <div class="space-y-4 mb-6">
+                    <div class="border-b pb-2">
+                        <div class="flex justify-between">
+                            <span class="text-lg">Cappuccino</span>
+                            <span class="text-gray-600">x2</span>
+                        </div>
+                        <div class="text-gray-500 text-sm">
+                            - Extra hot
+                            - Oat milk
+                        </div>
+                    </div>
+                    <div class="border-b pb-2">
+                        <div class="flex justify-between">
+                            <span class="text-lg">Espresso</span>
+                            <span class="text-gray-600">x1</span>
+                        </div>
+                        <div class="text-gray-500 text-sm">
+                            - Double shot
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                    <span>Waiter: John</span>
+                    <span>10:45 AM</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="updateOrderStatus('1234', 'in-progress')" class="flex-1 bg-warning text-white py-3 rounded-lg hover:bg-warning/90 transition-colors">
+                        Start Preparing
+                    </button>
+                </div>
+            </div>
+
+            <!-- In Progress Order Card -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <span class="text-xl font-bold">Order #1233</span>
+                        <span class="ml-2 bg-warning text-white px-3 py-1 rounded-full text-sm">In Progress</span>
+                    </div>
+                    <span class="text-gray-500">Table 2</span>
+                </div>
+                <div class="space-y-4 mb-6">
+                    <div class="border-b pb-2">
+                        <div class="flex justify-between">
+                            <span class="text-lg">Iced Latte</span>
+                            <span class="text-gray-600">x3</span>
+                        </div>
+                        <div class="text-gray-500 text-sm">
+                            - Extra ice
+                            - Caramel syrup
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                    <span>Waiter: Sarah</span>
+                    <span>10:40 AM</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="updateOrderStatus('1233', 'completed')" class="flex-1 bg-secondary text-white py-3 rounded-lg hover:bg-secondary/90 transition-colors">
+                        Mark as Complete
+                    </button>
+                </div>
+            </div>
+
+            <!-- Completed Order Card -->
+            <div class="bg-white rounded-lg shadow-lg p-6 opacity-75">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <span class="text-xl font-bold">Order #1232</span>
+                        <span class="ml-2 bg-secondary text-white px-3 py-1 rounded-full text-sm">Completed</span>
+                    </div>
+                    <span class="text-gray-500">Table 1</span>
+                </div>
+                <div class="space-y-4 mb-6">
+                    <div class="border-b pb-2">
+                        <div class="flex justify-between">
+                            <span class="text-lg">Espresso</span>
+                            <span class="text-gray-600">x1</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <span>Waiter: John</span>
+                    <span>10:35 AM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Audio notification for new orders
+        const orderSound = new Audio('notification.mp3');
+
+        // Navigation Functionality
+        const allOrdersBtn = document.getElementById('allOrdersBtn');
+        const inProgressBtn = document.getElementById('inProgressBtn');
+        const completedBtn = document.getElementById('completedBtn');
+
+        function updateOrderStatus(orderId, status) {
+            // Here we would typically make an API call to update the order status
+            console.log(`Updating order ${orderId} to ${status}`);
+            
+            // Play sound for new orders
+            if (status === 'new') {
+                orderSound.play();
+            }
+        }
+
+        // Simulating receiving new orders
+        function simulateNewOrder() {
+            orderSound.play();
+            // Here we would typically add the new order to the grid
+            console.log('New order received');
+        }
+
+        // Listen for new orders (would typically be through WebSocket)
+        setInterval(() => {
+            // This is just for demonstration
+            // In production, this would be replaced with actual WebSocket events
+            const random = Math.random();
+            if (random < 0.1) { // 10% chance every 30 seconds
+                simulateNewOrder();
+            }
+        }, 30000);
+    </script>
+    // Add this script to kitchen.html
+    <script>
+    // Load user data
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    if (!user || user.role !== 'kitchen') {
+        window.location.href = 'index.html';
+    }
+    
+    document.getElementById('kitchen-staff').textContent = user.name;
+    
+    // Update order status
+    async function updateOrderStatus(orderId, status) {
+        try {
+            const response = await fetch('http://localhost:8000/api/orders.php', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: orderId,
+                    status: status
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                loadOrders(); // Refresh orders list
+            }
+        } catch (error) {
+            console.error('Failed to update order:', error);
+            alert('Failed to update order');
+        }
+    }
+    
+    // Load kitchen orders
+    async function loadOrders() {
+        try {
+            const response = await fetch('http://localhost:8000/api/orders.php?status=pending,preparing');
+            const data = await response.json();
+            if (data.success) {
+                // Update orders grid UI
+                const ordersGrid = document.querySelector('.orders-grid');
+                ordersGrid.innerHTML = data.orders.map(order => `
+                    <div class="bg-white rounded-lg shadow-lg p-6 ${order.status === 'pending' ? 'new-order-animation' : ''}">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <span class="text-xl font-bold">Order #${order.id}</span>
+                                <span class="ml-2 bg-${order.status === 'pending' ? 'danger' : 'warning'} text-white px-3 py-1 rounded-full text-sm">
+                                    ${order.status === 'pending' ? 'New' : 'In Progress'}
+                                </span>
+                            </div>
+                            <span class="text-gray-500">Table ${order.table_number}</span>
+                        </div>
+                        <!-- Order items -->
+                        <div class="space-y-4 mb-6">
+                            ${order.items.map(item => `
+                                <div class="border-b pb-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-lg">${item.item_name}</span>
+                                        <span class="text-gray-600">x${item.quantity}</span>
+                                    </div>
+                                    ${item.notes ? `<div class="text-gray-500 text-sm">${item.notes}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <!-- Actions -->
+                        <div class="flex space-x-2">
+                            ${order.status === 'pending' ? `
+                                <button onclick="updateOrderStatus(${order.id}, 'preparing')" class="flex-1 bg-warning text-white py-3 rounded-lg hover:bg-warning/90">
+                                    Start Preparing
+                                </button>
+                            ` : `
+                                <button onclick="updateOrderStatus(${order.id}, 'ready')" class="flex-1 bg-secondary text-white py-3 rounded-lg hover:bg-secondary/90">
+                                    Mark as Ready
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Failed to load orders:', error);
+        }
+    }
+    
+    // Initial load
+    loadOrders();
+    // Refresh orders every 15 seconds
+    setInterval(loadOrders, 15000);
+    </script>
+</body>
+</html>

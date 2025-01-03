@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serveur POS - Restaurant Café</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-100">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-lg h-20">
+        <div class="max-w-full mx-auto px-4 h-full">
+            <div class="flex justify-between items-center h-full">
+                <div class="flex items-center space-x-8">
+                    <span class="text-2xl font-bold text-gray-900">Waiter POS</span>
+                    <div class="flex space-x-2">
+                        <button id="newOrderBtn" class="px-6 py-3 bg-primary text-white rounded-lg text-lg hover:bg-primary/90 transition-colors">
+                            Nouvelle Commande
+                        </button>
+                        <button id="ordersListBtn" class="px-6 py-3 bg-white text-gray-700 rounded-lg text-lg hover:bg-gray-50 transition-colors">
+                            Liste des Commandes
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="waiter-name" class="text-xl text-gray-600">John Doe</span>
+                    <span class="bg-secondary text-white px-4 py-2 rounded-full text-lg">Étage 1</span>
+                    <button class="bg-red-500 text-white px-6 py-4 rounded-md hover:bg-red-600 text-lg">Déconnexion</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="h-[calc(100vh-5rem)]">
+        <!-- New Order Interface -->
+        <div id="newOrderSection" class="h-full">
+            <!-- Table Selection Modal -->
+            <div id="tableSelectionModal" class="fixed top-20 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div class="bg-white rounded-lg p-8 w-full max-w-4xl mx-4">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold">Sélectionner une Table</h2>
+                        <p class="text-gray-600 mt-2">Choisissez une table pour commencer la commande</p>
+                    </div>
+                    
+                    <!-- Floor Tabs -->
+                    <div class="flex space-x-4 mb-6">
+                        <button class="px-6 py-3 bg-primary text-white rounded-lg text-lg">Étage 1</button>
+                        <button class="px-6 py-3 bg-white text-gray-700 border rounded-lg text-lg">Étage 2</button>
+                    </div>
+
+                    <!-- Tables Grid -->
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <!-- Available Tables -->
+                        <button onclick="selectTable(1)" class="p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-primary hover:shadow-lg transition-all">
+                            <div class="text-2xl font-bold text-center">T1</div>
+                            <div class="text-green-500 text-lg text-center">Disponible</div>
+                        </button>
+                        <button onclick="selectTable(2)" class="p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-primary hover:shadow-lg transition-all">
+                            <div class="text-2xl font-bold text-center">T2</div>
+                            <div class="text-green-500 text-lg text-center">Disponible</div>
+                        </button>
+
+                        <!-- Occupied Table -->
+                        <button disabled class="p-6 bg-gray-50 border-2 border-gray-200 rounded-lg opacity-75 cursor-not-allowed">
+                            <div class="text-2xl font-bold text-center text-gray-600">T3</div>
+                            <div class="text-warning text-lg text-center">Occupée</div>
+                        </button>
+
+                        <!-- More tables... -->
+                        <button onclick="selectTable(4)" class="p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-primary hover:shadow-lg transition-all">
+                            <div class="text-2xl font-bold text-center">T4</div>
+                            <div class="text-green-500 text-lg text-center">Disponible</div>
+                        </button>
+                    </div>
+
+                    <!-- Table Information -->
+                    <div class="flex justify-between items-center text-sm text-gray-600">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+                                <span>Disponible</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-warning rounded-full mr-2"></div>
+                                <span>Occupée</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Order Interface (Hidden initially) -->
+            <div id="orderInterface" class="hidden h-full">
+                <div class="flex h-full">
+                    <!-- Categories Sidebar -->
+                    <div class="w-64 bg-white shadow-lg flex flex-col">
+                        <h2 class="text-xl font-bold p-4 bg-gray-50">Catégories</h2>
+                        <div class="overflow-y-auto flex-1 py-2" id="categories-list">
+                            <button class="w-full px-6 py-4 text-left text-lg hover:bg-primary hover:text-white transition-colors category-btn active bg-primary text-white" data-category="hot-drinks">
+                                Boissons Chaudes
+                            </button>
+                            <button class="w-full px-6 py-4 text-left text-lg hover:bg-primary hover:text-white transition-colors category-btn" data-category="cold-drinks">
+                                Boissons Froides
+                            </button>
+                            <button class="w-full px-6 py-4 text-left text-lg hover:bg-primary hover:text-white transition-colors category-btn" data-category="food">
+                                Plats
+                            </button>
+                            <button class="w-full px-6 py-4 text-left text-lg hover:bg-primary hover:text-white transition-colors category-btn" data-category="desserts">
+                                Desserts
+                            </button>
+                            <button class="w-full px-6 py-4 text-left text-lg hover:bg-primary hover:text-white transition-colors category-btn" data-category="snacks">
+                                En-cas
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Menu Items Grid -->
+                    <div class="flex-1 p-6 overflow-y-auto bg-gray-50" id="menu-items">
+                        <!-- Hot Drinks Section -->
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 menu-section" id="hot-drinks">
+                            <button onclick="showItemModal('Espresso')" class="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl text-left">
+                                <div class="text-xl font-semibold">Expresso</div>
+                                <div class="text-gray-600 text-lg mb-2">Shot classique d'expresso</div>
+                                <div class="text-primary font-bold text-xl">$3.50</div>
+                            </button>
+                            <button onclick="showItemModal('Cappuccino')" class="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl text-left">
+                                <div class="text-xl font-semibold">Cappuccino</div>
+                                <div class="text-gray-600 text-lg mb-2">Espresso with steamed milk</div>
+                                <div class="text-primary font-bold text-xl">$4.50</div>
+                            </button>
+                        </div>
+                        <!-- Cold Drinks Section -->
+                        <div class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 menu-section" id="cold-drinks">
+                            <button onclick="showItemModal('Iced Latte')" class="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl text-left">
+                                <div class="text-xl font-semibold">Iced Latte</div>
+                                <div class="text-gray-600 text-lg mb-2">Cold espresso with milk</div>
+                                <div class="text-primary font-bold text-xl">$4.50</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Order Cart -->
+                    <div class="w-96 bg-white shadow-lg flex flex-col">
+                        <div class="p-4 bg-gray-50 border-b">
+                            <h2 class="text-2xl font-bold cart-header">Commande en Cours</h2>
+                        </div>
+                        
+                        <!-- Cart Items -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                            <div class="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <div class="text-xl font-semibold">Espresso</div>
+                                    <div class="text-lg text-gray-600">Double shot, Sans sucre</div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <button class="w-10 h-10 rounded-full bg-gray-200 text-xl flex items-center justify-center">-</button>
+                                    <span class="text-xl font-semibold">1</span>
+                                    <button class="w-10 h-10 rounded-full bg-gray-200 text-xl flex items-center justify-center">+</button>
+                                    <span class="text-xl font-semibold ml-4">$3.50</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="p-4 bg-white border-t">
+                            <div class="space-y-2 mb-4">
+                                <div class="flex justify-between text-lg">
+                                    <span class="text-gray-600">Sous-total</span>
+                                    <span>$3.50</span>
+                                </div>
+                                <div class="flex justify-between text-lg">
+                                    <span class="text-gray-600">TVA (10%)</span>
+                                    <span>$0.35</span>
+                                </div>
+                                <div class="flex justify-between font-bold text-xl">
+                                    <span>Total</span>
+                                    <span>$3.85</span>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <button class="w-full bg-secondary text-white py-4 rounded-lg hover:bg-green-600 text-xl">
+                                    Passer la Commande
+                                </button>
+                                <button class="w-full bg-primary text-white py-4 rounded-lg hover:bg-blue-600 text-xl">
+                                    Procéder au Paiement
+                                </button>
+                                <button class="w-full border-2 border-gray-300 text-gray-700 py-4 rounded-lg hover:bg-gray-50 text-xl">
+                                    Effacer la Commande
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders List Interface (Hidden by default) -->
+        <div id="ordersListSection" class="hidden h-full p-6">
+            <div class="bg-white rounded-lg shadow-lg h-full flex flex-col">
+                <!-- Orders List Header -->
+                <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                    <h2 class="text-2xl font-bold">Liste des Commandes</h2>
+                    <div class="flex space-x-4">
+                        <button class="px-4 py-2 bg-primary text-white rounded-lg">Toutes les Commandes</button>
+                        <button class="px-4 py-2 bg-white text-gray-700 rounded-lg border">Non Payées Uniquement</button>
+                    </div>
+                </div>
+
+                <!-- Orders List Content -->
+                <div class="flex-1 overflow-y-auto p-4">
+                    <div class="grid gap-4">
+                        <!-- Order Item -->
+                        <div class="bg-gray-50 rounded-lg p-4 flex justify-between items-start">
+                            <div class="space-y-2">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-lg font-bold">#1234</span>
+                                    <span class="text-gray-600">Table 5</span>
+                                    <span class="bg-warning text-white px-3 py-1 rounded-full text-sm">Unpaid</span>
+                                </div>
+                                <div class="text-gray-600">
+                                    2x Espresso, 1x Cappuccino
+                                </div>
+                                <div class="text-gray-500 text-sm">
+                                    Ordered at 10:30 AM
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xl font-bold">$12.50</span>
+                                <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                                    Pay Now
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Completed Order -->
+                        <div class="bg-gray-50 rounded-lg p-4 flex justify-between items-start">
+                            <div class="space-y-2">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-lg font-bold">#1233</span>
+                                    <span class="text-gray-600">Table 3</span>
+                                    <span class="bg-secondary text-white px-3 py-1 rounded-full text-sm">Paid</span>
+                                </div>
+                                <div class="text-gray-600">
+                                    3x Latte, 2x Croissant
+                                </div>
+                                <div class="text-gray-500 text-sm">
+                                    Completed at 10:15 AM
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xl font-bold">$22.50</span>
+                                <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg">
+                                    View Receipt
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- More order items... -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item Customization Modal -->
+    <div id="itemModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-8 w-full max-w-2xl mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-3xl font-bold" id="modalItemName">Personnaliser l'Article</h3>
+                <button onclick="hideItemModal()" class="touch-button text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+            </div>
+            
+            <!-- Options -->
+            <div class="space-y-6 mb-8">
+                <!-- Size Options -->
+                <div>
+                    <label class="text-xl font-semibold block mb-3">Taille</label>
+                    <div class="grid grid-cols-3 gap-4">
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg hover:bg-gray-50 text-lg">Petite</button>
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg bg-primary text-white text-lg">Normale</button>
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg hover:bg-gray-50 text-lg">Grande</button>
+                    </div>
+                </div>
+                
+                <!-- Shot Options -->
+                <div>
+                    <label class="text-xl font-semibold block mb-3">Shots</label>
+                    <div class="grid grid-cols-3 gap-4">
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg hover:bg-gray-50 text-lg">Single</button>
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg bg-primary text-white text-lg">Double</button>
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg hover:bg-gray-50 text-lg">Triple</button>
+                    </div>
+                </div>
+
+                <!-- Sugar Level -->
+                <div>
+                    <label class="text-xl font-semibold block mb-3">Sugar Level</label>
+                    <div class="grid grid-cols-4 gap-4">
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg bg-primary text-white text-lg">None</button>
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg hover:bg-gray-50 text-lg">Light</button>
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg hover:bg-gray-50 text-lg">Regular</button>
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg hover:bg-gray-50 text-lg">Extra</button>
+                    </div>
+                </div>
+
+                <!-- Special Instructions -->
+                <div>
+                    <label class="text-xl font-semibold block mb-3">Special Instructions</label>
+                    <textarea class="w-full p-4 border-2 rounded-lg text-lg" rows="2" placeholder="Add any special instructions..."></textarea>
+                </div>
+
+                <div>
+                    <label class="text-xl font-semibold block mb-3">Type</label>
+                    <div class="grid grid-cols-4 gap-4">
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg bg-primary text-white text-lg">In Place</button>
+                        <button class="modal-option px-6 py-4 border-2 rounded-lg hover:bg-gray-50 text-lg">Takeout</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quantity and Add to Order -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button class="touch-button w-16 h-16 rounded-full bg-gray-200 text-3xl">-</button>
+                    <span class="text-2xl font-semibold">1</span>
+                    <button class="touch-button w-16 h-16 rounded-full bg-gray-200 text-3xl">+</button>
+                </div>
+                <button onclick="addToOrder()" class="touch-button bg-primary text-white px-8 py-4 rounded-lg text-xl">
+                    Add to Order - $3.50
+                </button>
+            </div>
+        </div>
+    </div>
+
+   
+    <script>
+        // Table Selection
+        let currentTable = null;
+        const tableSelectionModal = document.getElementById('tableSelectionModal');
+        const orderInterface = document.getElementById('orderInterface');
+
+        function selectTable(tableNumber) {
+            currentTable = tableNumber;
+            // Hide table selection modal
+            tableSelectionModal.classList.add('hidden');
+            // Show order interface
+            orderInterface.classList.remove('hidden');
+            // Update cart header with table number
+            document.querySelector('.cart-header').textContent = `Current Order - Table ${tableNumber}`;
+        }
+
+        // Navigation Functionality
+        const newOrderBtn = document.getElementById('newOrderBtn');
+        const ordersListBtn = document.getElementById('ordersListBtn');
+        const newOrderSection = document.getElementById('newOrderSection');
+        const ordersListSection = document.getElementById('ordersListSection');
+
+        newOrderBtn.addEventListener('click', () => {
+            newOrderBtn.classList.add('bg-primary', 'text-white');
+            newOrderBtn.classList.remove('bg-white', 'text-gray-700');
+            ordersListBtn.classList.remove('bg-primary', 'text-white');
+            ordersListBtn.classList.add('bg-white', 'text-gray-700');
+            newOrderSection.classList.remove('hidden');
+            ordersListSection.classList.add('hidden');
+            
+            // Only show table selection if no table is selected
+            if (!currentTable) {
+                tableSelectionModal.classList.remove('hidden');
+                orderInterface.classList.add('hidden');
+            } else {
+                tableSelectionModal.classList.add('hidden');
+                orderInterface.classList.remove('hidden');
+                document.querySelector('.cart-header').textContent = `Current Order - Table ${currentTable}`;
+            }
+        });
+
+        ordersListBtn.addEventListener('click', () => {
+            ordersListBtn.classList.add('bg-primary', 'text-white');
+            ordersListBtn.classList.remove('bg-white', 'text-gray-700');
+            newOrderBtn.classList.remove('bg-primary', 'text-white');
+            newOrderBtn.classList.add('bg-white', 'text-gray-700');
+            ordersListSection.classList.remove('hidden');
+            newOrderSection.classList.add('hidden');
+        });
+
+
+        // Category switching functionality
+        document.querySelectorAll('.category-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.remove('bg-primary', 'text-white');
+                });
+                
+                // Add active class to clicked button
+                button.classList.add('bg-primary', 'text-white');
+                
+                // Hide all menu sections
+                document.querySelectorAll('.menu-section').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                
+                // Show selected category's menu items
+                const categoryId = button.dataset.category;
+                document.getElementById(categoryId).classList.remove('hidden');
+            });
+        });
+
+        function showItemModal(itemName) {
+            document.getElementById('modalItemName').textContent = 'Customize ' + itemName;
+            document.getElementById('itemModal').classList.remove('hidden');
+        }
+
+        function hideItemModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+        }
+
+        function addToOrder() {
+            hideItemModal();
+        }
+    </script>
+</body>
+// Add this script to waiter.html
+<script>
+// Load user data
+const user = JSON.parse(sessionStorage.getItem('user'));
+if (!user || user.role !== 'waiter') {
+    window.location.href = 'index.html';
+}
+
+document.getElementById('waiter-name').textContent = user.name;
+
+// Create new order
+async function createOrder(tableId, items) {
+    try {
+        const response = await fetch('http://localhost:8000/api/orders.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                table_id: tableId,
+                waiter_id: user.id,
+                type: 'dine-in',
+                items: items
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            alert('Order created successfully!');
+            // Reset order interface
+            currentTable = null;
+            tableSelectionModal.classList.remove('hidden');
+            orderInterface.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Failed to create order:', error);
+        alert('Failed to create order');
+    }
+}
+
+// Load orders
+async function loadOrders() {
+    try {
+        const response = await fetch('http://localhost:8000/api/orders.php');
+        const data = await response.json();
+        if (data.success) {
+            // Update orders list UI
+            const ordersList = document.querySelector('#ordersListSection .grid');
+            ordersList.innerHTML = data.orders.map(order => `
+                <div class="bg-gray-50 rounded-lg p-4 flex justify-between items-start">
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-lg font-bold">#${order.id}</span>
+                            <span class="text-gray-600">Table ${order.table_number}</span>
+                            <span class="bg-warning text-white px-3 py-1 rounded-full text-sm">${order.status}</span>
+                        </div>
+                        <div class="text-gray-500 text-sm">
+                            Ordered at ${new Date(order.created_at).toLocaleTimeString()}
+                        </div>
+                    </div>
+                    <span class="text-xl font-bold">$${order.total_amount}</span>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Failed to load orders:', error);
+    }
+}
+
+// Initial load
+loadOrders();
+// Refresh orders every 30 seconds
+setInterval(loadOrders, 30000);
+</script>
+</html>

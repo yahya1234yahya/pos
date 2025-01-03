@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Dashboard - Coffee Restaurant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .content-container {
+            height: calc(100vh - 5rem);
+            overflow: hidden;
+        }
+        .scrollable-content {
+            height: 100%;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        .chart-container {
+            height: 50vh;
+            position: relative;
+            width: 100%;
+        }
+        /* Custom scrollbar for webkit browsers */
+        .scrollable-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scrollable-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-100">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-lg h-20">
+        <div class="max-w-full mx-auto px-4 h-full">
+            <div class="flex justify-between items-center h-full">
+                <div class="flex items-center space-x-8">
+                    <span class="text-2xl font-bold text-gray-900">Management Dashboard</span>
+                    <div class="flex space-x-4">
+                        <button id="overviewBtn" class="px-6 py-3 bg-primary text-white rounded-lg text-lg hover:bg-primary/90 transition-colors">
+                            Overview
+                        </button>
+                        <button id="staffBtn" class="px-6 py-3 bg-white text-gray-700 rounded-lg text-lg hover:bg-gray-50 transition-colors">
+                            Staff
+                        </button>
+                        <button id="menuBtn" class="px-6 py-3 bg-white text-gray-700 rounded-lg text-lg hover:bg-gray-50 transition-colors">
+                            Menu
+                        </button>
+                        <button id="reportsBtn" class="px-6 py-3 bg-white text-gray-700 rounded-lg text-lg hover:bg-gray-50 transition-colors">
+                            Reports
+                        </button>
+                        <button id="settingsBtn" class="px-6 py-3 bg-white text-gray-700 rounded-lg text-lg hover:bg-gray-50 transition-colors">
+                            Settings
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="admin-name" class="text-xl text-gray-600">Admin</span>
+                    <button class="bg-red-500 text-white px-6 py-4 rounded-md hover:bg-red-600 text-lg">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="content-container">
+        <!-- Overview Section -->
+        <div id="overviewSection" class="scrollable-content">
+            <!-- Today's Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg text-gray-600 mb-2">Today's Revenue</h3>
+                    <p class="text-3xl font-bold text-primary">$1,234.56</p>
+                    <p class="text-sm text-gray-500 mt-2">+12.3% from yesterday</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg text-gray-600 mb-2">Customers Today</h3>
+                    <p class="text-3xl font-bold text-primary">145</p>
+                    <p class="text-sm text-gray-500 mt-2">+5% from yesterday</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg text-gray-600 mb-2">Items Ordered</h3>
+                    <p class="text-3xl font-bold text-primary">387</p>
+                    <p class="text-sm text-gray-500 mt-2">Most popular: Cappuccino</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg text-gray-600 mb-2">Active Staff</h3>
+                    <p class="text-3xl font-bold text-primary">8</p>
+                    <p class="text-sm text-gray-500 mt-2">2 kitchen, 6 waiters</p>
+                </div>
+            </div>
+
+            <!-- Daily Waiters Report (replaces Sales Chart) -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold mb-4">Today's Waiters Report</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left border-b">
+                                <th class="p-4">Waiter</th>
+                                <th class="p-4">Orders Taken</th>
+                                <th class="p-4">Total Sales</th>
+                                <th class="p-4">Items Sold</th>
+                                <th class="p-4">Avg Order Value</th>
+                                <th class="p-4">Most Sold Item</th>
+                                <th class="p-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-4">John Doe</td>
+                                <td class="p-4">25</td>
+                                <td class="p-4">$487.50</td>
+                                <td class="p-4">78</td>
+                                <td class="p-4">$19.50</td>
+                                <td class="p-4">Cappuccino</td>
+                                <td class="p-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">Active</span></td>
+                            </tr>
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-4">Jane Smith</td>
+                                <td class="p-4">18</td>
+                                <td class="p-4">$356.25</td>
+                                <td class="p-4">52</td>
+                                <td class="p-4">$19.79</td>
+                                <td class="p-4">Latte</td>
+                                <td class="p-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">Active</span></td>
+                            </tr>
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-4">Mike Johnson</td>
+                                <td class="p-4">22</td>
+                                <td class="p-4">$390.75</td>
+                                <td class="p-4">65</td>
+                                <td class="p-4">$17.76</td>
+                                <td class="p-4">Espresso</td>
+                                <td class="p-4"><span class="bg-red-100 text-red-800 px-2 py-1 rounded">Off Duty</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Management Section -->
+        <div id="staffSection" class="scrollable-content hidden">
+            <!-- Add New Staff -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold mb-4">Add New Staff</h3>
+                <form class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Name</label>
+                            <input type="text" class="w-full p-3 border rounded-lg" placeholder="Enter name">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Role</label>
+                            <select class="w-full p-3 border rounded-lg">
+                                <option>Waiter</option>
+                                <option>Kitchen Staff</option>
+                                <option>Manager</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">RFID Badge ID</label>
+                            <input type="text" class="w-full p-3 border rounded-lg" placeholder="Scan RFID badge">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full bg-primary text-white p-3 rounded-lg hover:bg-primary/90">
+                                Add Staff Member
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Staff List -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mt-4">
+                <h3 class="text-xl font-bold mb-4">Staff List</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left border-b">
+                                <th class="p-4">Name</th>
+                                <th class="p-4">Role</th>
+                                <th class="p-4">Badge ID</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-4">John Doe</td>
+                                <td class="p-4">Waiter</td>
+                                <td class="p-4">#12345</td>
+                                <td class="p-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">Active</span></td>
+                                <td class="p-4">
+                                    <button class="text-red-500 hover:text-red-700">Remove</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Management Section -->
+        <div id="menuSection" class="scrollable-content hidden">
+            <!-- Add New Item -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold mb-4">Add Menu Item</h3>
+                <form class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Item Name</label>
+                            <input type="text" class="w-full p-3 border rounded-lg" placeholder="Enter item name">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Category</label>
+                            <select class="w-full p-3 border rounded-lg">
+                                <option>Hot Drinks</option>
+                                <option>Cold Drinks</option>
+                                <option>Food</option>
+                                <option>Desserts</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Price</label>
+                            <input type="number" step="0.01" class="w-full p-3 border rounded-lg" placeholder="0.00">
+                        </div>
+                        <div class="md:col-span-2 lg:col-span-3">
+                            <label class="block text-gray-700 mb-2">Description</label>
+                            <textarea class="w-full p-3 border rounded-lg" rows="2" placeholder="Enter item description"></textarea>
+                        </div>
+                        
+                        <!-- Customization Options Section -->
+                        <div class="md:col-span-2 lg:col-span-3">
+                            <label class="block text-gray-700 mb-2">Customization Options</label>
+                            <div class="space-y-4" id="customizationOptions">
+                                <!-- Option Groups -->
+                                <div class="border rounded-lg p-4 space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="text-lg font-semibold">Option Group</h4>
+                                        <button type="button" onclick="addOptionGroup()" class="text-primary hover:text-primary/90">
+                                            + Add Option Group
+                                        </button>
+                                    </div>
+                                    <div id="optionGroups" class="space-y-4">
+                                        <div class="option-group border-l-4 border-primary pl-4 space-y-3">
+                                            <div class="flex items-center space-x-4">
+                                                <input type="text" class="flex-1 p-2 border rounded" placeholder="Group Name (e.g., Sugar Level)">
+                                                <select class="p-2 border rounded">
+                                                    <option>Single Select</option>
+                                                    <option>Multi Select</option>
+                                                </select>
+                                                <button type="button" class="text-red-500 hover:text-red-700">Remove</button>
+                                            </div>
+                                            <div class="options-list space-y-2">
+                                                <div class="flex items-center space-x-4">
+                                                    <input type="text" class="flex-1 p-2 border rounded" placeholder="Option Name">
+                                                    <input type="number" class="w-24 p-2 border rounded" placeholder="Extra Cost" step="0.01">
+                                                    <button type="button" class="text-red-500 hover:text-red-700">Remove</button>
+                                                </div>
+                                            </div>
+                                            <button type="button" onclick="addOption(this)" class="text-sm text-primary hover:text-primary/90">
+                                                + Add Option
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2 lg:col-span-3">
+                            <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90">
+                                Add Item
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Menu Items List -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mt-4">
+                <h3 class="text-xl font-bold mb-4">Menu Items</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left border-b">
+                                <th class="p-4">Item</th>
+                                <th class="p-4">Category</th>
+                                <th class="p-4">Price</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-4">Cappuccino</td>
+                                <td class="p-4">Hot Drinks</td>
+                                <td class="p-4">$4.50</td>
+                                <td class="p-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">Available</span></td>
+                                <td class="p-4">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="showEditModal('item1')">Edit</button>
+                                    <button class="text-red-500 hover:text-red-700" onclick="showDeleteModal('item1')">Remove</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reportsSection" class="scrollable-content hidden">
+            <!-- Date Range Selector -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-1">
+                        <label class="block text-gray-700 mb-2">Date Range</label>
+                        <div class="flex space-x-4">
+                            <input type="text" id="dateFrom" class="flex-1 p-3 border rounded-lg" placeholder="From">
+                            <input type="text" id="dateTo" class="flex-1 p-3 border rounded-lg" placeholder="To">
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-gray-700 mb-2">Quick Select</label>
+                        <select class="w-full p-3 border rounded-lg">
+                            <option>Today</option>
+                            <option>Yesterday</option>
+                            <option>Last 7 days</option>
+                            <option>This month</option>
+                            <option>Last month</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90">
+                            Generate Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waiter Performance -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mt-4">
+                <h3 class="text-xl font-bold mb-4">Waiter Performance</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left border-b">
+                                <th class="p-4">Waiter</th>
+                                <th class="p-4">Orders</th>
+                                <th class="p-4">Items Sold</th>
+                                <th class="p-4">Total Sales</th>
+                                <th class="p-4">Avg Order Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-4">John Doe</td>
+                                <td class="p-4">45</td>
+                                <td class="p-4">156</td>
+                                <td class="p-4">$789.50</td>
+                                <td class="p-4">$17.54</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sales Summary -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mt-4">
+                <h3 class="text-xl font-bold mb-4">Sales Summary</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <h4 class="text-lg text-gray-600 mb-2">Total Revenue</h4>
+                        <p class="text-3xl font-bold text-primary">$4,567.89</p>
+                    </div>
+                    <div>
+                        <h4 class="text-lg text-gray-600 mb-2">Total Orders</h4>
+                        <p class="text-3xl font-bold text-primary">234</p>
+                    </div>
+                    <div>
+                        <h4 class="text-lg text-gray-600 mb-2">Total Items</h4>
+                        <p class="text-3xl font-bold text-primary">789</p>
+                    </div>
+                    <div>
+                        <h4 class="text-lg text-gray-600 mb-2">Avg Order Value</h4>
+                        <p class="text-3xl font-bold text-primary">$19.52</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="settingsSection" class="scrollable-content hidden">
+            <!-- Receipt Settings -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold mb-4">Receipt Settings</h3>
+                <form class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Restaurant Name</label>
+                            <input type="text" class="w-full p-3 border rounded-lg" placeholder="Enter restaurant name">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Phone Number</label>
+                            <input type="text" class="w-full p-3 border rounded-lg" placeholder="Enter phone number">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 mb-2">Address</label>
+                            <textarea class="w-full p-3 border rounded-lg" rows="2" placeholder="Enter full address"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">WiFi Network</label>
+                            <input type="text" class="w-full p-3 border rounded-lg" placeholder="Enter WiFi network name">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">WiFi Password</label>
+                            <input type="text" class="w-full p-3 border rounded-lg" placeholder="Enter WiFi password">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 mb-2">Receipt Footer Message</label>
+                            <textarea class="w-full p-3 border rounded-lg" rows="2" placeholder="Enter thank you message or promotional text"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Tax Rate (%)</label>
+                            <input type="number" step="0.01" class="w-full p-3 border rounded-lg" placeholder="Enter tax rate">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Service Charge (%)</label>
+                            <input type="number" step="0.01" class="w-full p-3 border rounded-lg" placeholder="Enter service charge">
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90">
+                            Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-4xl mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Edit Item</h2>
+                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Item Name</label>
+                        <input type="text" id="editItemName" class="w-full p-3 border rounded-lg" placeholder="Enter item name">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Category</label>
+                        <select id="editItemCategory" class="w-full p-3 border rounded-lg">
+                            <option>Hot Drinks</option>
+                            <option>Cold Drinks</option>
+                            <option>Food</option>
+                            <option>Desserts</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Price</label>
+                        <input type="number" id="editItemPrice" step="0.01" class="w-full p-3 border rounded-lg" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Status</label>
+                        <select id="editItemStatus" class="w-full p-3 border rounded-lg">
+                            <option>Available</option>
+                            <option>Unavailable</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Description</label>
+                    <textarea id="editItemDescription" class="w-full p-3 border rounded-lg" rows="2" placeholder="Enter item description"></textarea>
+                </div>
+                <!-- Customization Options Section -->
+                <div id="editCustomizationOptions">
+                    <!-- Similar structure to the add item form -->
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeEditModal()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="text-center">
+                <div class="mb-4">
+                    <svg class="mx-auto h-12 w-12 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Are you sure?</h3>
+                <p class="text-gray-600 mb-6">This action cannot be undone. This will permanently delete the item.</p>
+                <div class="flex justify-center space-x-3">
+                    <button onclick="closeDeleteModal()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button onclick="confirmDelete()" class="px-6 py-3 bg-danger text-white rounded-lg hover:bg-danger/90">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        const sections = ['overview', 'staff', 'menu', 'reports', 'settings'];
+        const buttons = {
+            overview: document.getElementById('overviewBtn'),
+            staff: document.getElementById('staffBtn'),
+            menu: document.getElementById('menuBtn'),
+            reports: document.getElementById('reportsBtn'),
+            settings: document.getElementById('settingsBtn')
+        };
+
+        sections.forEach(section => {
+            buttons[section].addEventListener('click', () => {
+                // Hide all sections
+                sections.forEach(s => {
+                    document.getElementById(`${s}Section`).classList.add('hidden');
+                    buttons[s].classList.remove('bg-primary', 'text-white');
+                    buttons[s].classList.add('bg-white', 'text-gray-700');
+                });
+
+                // Show selected section
+                document.getElementById(`${section}Section`).classList.remove('hidden');
+                buttons[section].classList.remove('bg-white', 'text-gray-700');
+                buttons[section].classList.add('bg-primary', 'text-white');
+            });
+        });
+
+        // Initialize date pickers
+        flatpickr("#dateFrom", {
+            defaultDate: "today",
+            dateFormat: "Y-m-d"
+        });
+
+        flatpickr("#dateTo", {
+            defaultDate: "today",
+            dateFormat: "Y-m-d"
+        });
+
+        // Initialize sales chart
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM'],
+                datasets: [{
+                    label: 'Sales ($)',
+                    data: [65, 159, 200, 381, 256, 155, 240, 280],
+                    borderColor: '#4F46E5',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Menu Item Customization Functions
+        function addOptionGroup() {
+            const optionGroups = document.getElementById('optionGroups');
+            const newGroup = document.createElement('div');
+            newGroup.className = 'option-group border-l-4 border-primary pl-4 space-y-3';
+            newGroup.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <input type="text" class="flex-1 p-2 border rounded" placeholder="Group Name (e.g., Sugar Level)">
+                    <select class="p-2 border rounded">
+                        <option>Single Select</option>
+                        <option>Multi Select</option>
+                    </select>
+                    <button type="button" onclick="removeElement(this.parentElement.parentElement)" class="text-red-500 hover:text-red-700">Remove</button>
+                </div>
+                <div class="options-list space-y-2">
+                    <div class="flex items-center space-x-4">
+                        <input type="text" class="flex-1 p-2 border rounded" placeholder="Option Name">
+                        <input type="number" class="w-24 p-2 border rounded" placeholder="Extra Cost" step="0.01">
+                        <button type="button" onclick="removeElement(this.parentElement)" class="text-red-500 hover:text-red-700">Remove</button>
+                    </div>
+                </div>
+                <button type="button" onclick="addOption(this)" class="text-sm text-primary hover:text-primary/90">
+                    + Add Option
+                </button>
+            `;
+            optionGroups.appendChild(newGroup);
+        }
+
+        function addOption(button) {
+            const optionsList = button.previousElementSibling;
+            const newOption = document.createElement('div');
+            newOption.className = 'flex items-center space-x-4';
+            newOption.innerHTML = `
+                <input type="text" class="flex-1 p-2 border rounded" placeholder="Option Name">
+                <input type="number" class="w-24 p-2 border rounded" placeholder="Extra Cost" step="0.01">
+                <button type="button" onclick="removeElement(this.parentElement)" class="text-red-500 hover:text-red-700">Remove</button>
+            `;
+            optionsList.appendChild(newOption);
+        }
+
+        function removeElement(element) {
+            element.remove();
+        }
+
+        // Modal Functions
+        let currentItemId = null;
+
+        function showEditModal(itemId) {
+            currentItemId = itemId;
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Populate form with item data (example)
+            document.getElementById('editItemName').value = 'Cappuccino';
+            document.getElementById('editItemPrice').value = '4.50';
+            document.getElementById('editItemDescription').value = 'Classic cappuccino with steamed milk';
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            currentItemId = null;
+        }
+
+        function showDeleteModal(itemId) {
+            currentItemId = itemId;
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            currentItemId = null;
+        }
+
+        function confirmDelete() {
+            if (currentItemId) {
+                // Handle delete action here
+                console.log(`Deleting item ${currentItemId}`);
+                // After successful deletion
+                closeDeleteModal();
+            }
+        }
+
+        // Update the menu items table actions
+        function updateMenuItemActions() {
+            const actionsCell = document.querySelector('td:last-child');
+            if (actionsCell) {
+                actionsCell.innerHTML = `
+                    <button onclick="showEditModal('item1')" class="text-blue-500 hover:text-blue-700 mr-2">Edit</button>
+                    <button onclick="showDeleteModal('item1')" class="text-red-500 hover:text-red-700">Remove</button>
+                `;
+            }
+        }
+
+        // Call this when the page loads
+        updateMenuItemActions();
+    </script>
+</body>
+</html>

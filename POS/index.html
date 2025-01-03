@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Café - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">POS System Login</h1>
+                <p class="text-gray-600 mt-2">Enter your ID to login</p>
+            </div>
+            <div id="login-form" class="space-y-6">
+                <div>
+                    <input type="text" 
+                           id="user-id" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" 
+                           placeholder="Enter your ID"
+                           required />
+                </div>
+                <button 
+                    onclick="authenticate()"
+                    class="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary/90 transition-colors">
+                    Login
+                </button>
+            </div>
+            <div id="status-message" class="mt-4 text-center hidden">
+                <!-- Status messages will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userIdInput = document.getElementById('user-id');
+        const statusMessage = document.getElementById('status-message');
+        const loginForm = document.getElementById('login-form');
+
+        async function authenticate() {
+            const userId = userIdInput.value.trim();
+            
+            if (!userId) {
+                showStatus('danger', 'Please enter your ID');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/auth.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ rfid: userId })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('secondary', 'Authentication successful!');
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+
+                    setTimeout(() => {
+                        switch (data.user.role) {
+                            case 'waiter':
+                                window.location.href = 'waiter.html';
+                                break;
+                            case 'kitchen':
+                                window.location.href = 'kitchen.html';
+                                break;
+                            case 'admin':
+                                window.location.href = 'management.html';
+                                break;
+                        }
+                    }, 1000);
+                } else {
+                    showStatus('danger', 'Invalid ID');
+                }
+            } catch (error) {
+                console.error('Authentication failed:', error);
+                showStatus('danger', 'System error');
+            }
+        }
+
+        function showStatus(type, message) {
+            statusMessage.className = `mt-4 text-center text-${type} text-lg`;
+            statusMessage.classList.remove('hidden');
+            statusMessage.textContent = message;
+        }
+
+        // Allow login with Enter key
+        userIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                authenticate();
+            }
+        });
+    </script>
+</body>
+</html>

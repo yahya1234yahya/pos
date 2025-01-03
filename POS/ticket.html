@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .receipt {
+            width: 80mm;
+            padding: 8px;
+            margin: 0 auto;
+        }
+        .center {
+            text-align: center;
+        }
+        .bold {
+            font-weight: bold;
+        }
+        .header {
+            margin-bottom: 10px;
+        }
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 8px 0;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+        .footer {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt"  style="padding: 30px;">
+        <!-- Header -->
+        <div class="header center">
+            <h1 class="bold">COFFEE RESTAURANT</h1>
+            <p>123 Coffee Street</p>
+            <p>Paris, France</p>
+            <p id="datetime">Date: 15/03/2024 14:30</p>
+        </div>
+
+        <div class="divider" style="margin-top: 30px;"></div>
+
+        <!-- Receipt Title -->
+        <div class="center bold">
+            <p>PAYMENT RECEIPT</p>
+            <p>Order #1234</p>
+        </div>
+
+        <div class="divider" style="margin-bottom: 30px;"></div>
+
+        <!-- Items -->
+        <div class="items">
+            <div class="item-row">
+                <span>Espresso x2</span>
+                <span>7.00€</span>
+            </div>
+            <div class="item-row">
+                <span>Cappuccino x1</span>
+                <span>4.50€</span>
+            </div>
+            <div class="item-row">
+                <span class="bold">Subtotal</span>
+                <span class="bold">11.50€</span>
+            </div>
+        </div>
+
+        <div class="divider" style="margin-top: 30px;"></div>
+
+        <!-- Total -->
+        <div class="item-row bold">
+            <span>TOTAL</span>
+            <span>12.65€</span>
+        </div>
+
+        <div class="divider" style="margin-bottom: 30px;"></div>
+
+        <!-- WiFi Info -->
+        <div class="center footer">
+            <p>WiFi Network: COFFEE-GUEST</p>
+            <p>Password: welcomecoffee</p>
+        </div>
+
+        <!-- Thank You Message -->
+        <div class="center footer">
+            <p class="bold">Thank you for your visit!</p>
+            <p>See you soon!</p>
+        </div>
+    </div>
+
+    <script>
+        // Update datetime
+        document.getElementById('datetime').textContent = 
+            'Date: ' + new Date().toLocaleString();
+    </script>
+</body>
+</html>

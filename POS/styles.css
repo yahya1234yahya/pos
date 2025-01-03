@@ -1,0 +1,61 @@
+/* Base styles */
+.btn-primary {
+    @apply bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors;
+}
+
+.btn-secondary {
+    @apply bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors;
+}
+
+.btn-danger {
+    @apply bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors;
+}
+
+.nav-btn {
+    @apply px-6 py-3 rounded-lg text-lg transition-colors;
+}
+
+.nav-btn:not(.active) {
+    @apply bg-white text-gray-700 hover:bg-gray-50;
+}
+
+.nav-btn.active {
+    @apply bg-blue-600 text-white;
+}
+
+/* Modal styles */
+.modal {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center;
+}
+
+.modal-content {
+    @apply bg-white rounded-lg p-6 w-full max-w-md mx-4;
+}
+
+/* Product card */
+.product-card {
+    @apply bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition-shadow;
+}
+
+/* Order item */
+.order-item {
+    @apply flex justify-between items-center p-3 bg-gray-50 rounded-lg;
+}
+
+/* View transitions */
+.view-container {
+    @apply h-full overflow-y-auto;
+}
+
+/* Categories */
+.category-btn {
+    @apply w-full text-left px-4 py-2 rounded-lg transition-colors;
+}
+
+.category-btn:not(.active) {
+    @apply hover:bg-gray-100;
+}
+
+.category-btn.active {
+    @apply bg-blue-600 text-white;
+}
