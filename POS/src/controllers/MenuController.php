@@ -406,8 +406,8 @@ class MenuController {
             $itemId = $this->db->lastInsertId();
 
             // Insert options if provided
-            if (!empty($data['options'])) {
-                foreach ($data['options'] as $option) {
+            if (!empty($data['option_groups'])) { 
+                foreach ($data['option_groups'] as $option) {
                     // Insert option
                     $sql = "INSERT INTO item_options (menu_item_id, option_name, option_type) 
                            VALUES (:item_id, :option_name, :option_type)";
@@ -415,23 +415,23 @@ class MenuController {
                     $stmt = $this->db->prepare($sql);
                     $stmt->execute([
                         ':item_id' => $itemId,
-                        ':option_name' => $option['option_name'],
-                        ':option_type' => $option['option_type']
+                        ':option_name' => $option['name'],
+                        ':option_type' => $option['type']
                     ]);
 
                     $optionId = $this->db->lastInsertId();
 
                     // Insert option values
-                    if (!empty($option['values'])) {
-                        foreach ($option['values'] as $value) {
+                    if (!empty($option['name'])) {
+                        foreach ($option['options'] as $value) {
                             $sql = "INSERT INTO option_values (option_id, value, extra_cost) 
                                    VALUES (:option_id, :value, :extra_cost)";
                             
                             $stmt = $this->db->prepare($sql);
                             $stmt->execute([
                                 ':option_id' => $optionId,
-                                ':value' => $value['value'],
-                                ':extra_cost' => $value['extra_cost'] ?? 0
+                                ':value' => $value['name'],
+                                ':extra_cost' => $value['extraCost'] ?? 0
                             ]);
                         }
                     }
@@ -450,7 +450,7 @@ class MenuController {
     public function updateItem($id, $data) {
         try {
             $this->db->beginTransaction();
-
+    
             // Update menu item
             $sql = "UPDATE menu_items SET 
                    name = :name,
@@ -467,51 +467,89 @@ class MenuController {
                 ':price' => $data['price'],
                 ':category_id' => $data['category_id']
             ]);
-
+    
             // Update options if provided
-            if (isset($data['options'])) {
-                // Delete existing options and their values
-                $sql = "DELETE ov FROM option_values ov 
-                       INNER JOIN item_options io ON ov.option_id = io.id 
-                       WHERE io.menu_item_id = :item_id";
-                $stmt = $this->db->prepare($sql);
-                $stmt->execute([':item_id' => $id]);
-
-                $sql = "DELETE FROM item_options WHERE menu_item_id = :item_id";
-                $stmt = $this->db->prepare($sql);
-                $stmt->execute([':item_id' => $id]);
-
-                // Insert new options
-                foreach ($data['options'] as $option) {
-                    $sql = "INSERT INTO item_options (menu_item_id, option_name, option_type) 
-                           VALUES (:item_id, :option_name, :option_type)";
-                    
+            if (isset($data['option_groups'])) {
+                foreach ($data['option_groups'] as $option) {
+                    error_log("Option: " . json_encode($option));
+    
+                    // Check if the option already exists
+                    $sql = "SELECT id FROM item_options WHERE menu_item_id = :item_id AND option_name = :option_name";
                     $stmt = $this->db->prepare($sql);
                     $stmt->execute([
                         ':item_id' => $id,
-                        ':option_name' => $option['option_name'],
-                        ':option_type' => $option['option_type']
+                        ':option_name' => $option['name']
                     ]);
-
-                    $optionId = $this->db->lastInsertId();
-
-                    // Insert option values
-                    if (!empty($option['values'])) {
-                        foreach ($option['values'] as $value) {
-                            $sql = "INSERT INTO option_values (option_id, value, extra_cost) 
-                                   VALUES (:option_id, :value, :extra_cost)";
-                            
+    
+                    $existingOption = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+                    if ($existingOption) {
+                        // Update the existing option
+                        $sql = "UPDATE item_options SET option_type = :option_type 
+                               WHERE id = :option_id";
+                        
+                        $stmt = $this->db->prepare($sql);
+                        $stmt->execute([
+                            ':option_id' => $existingOption['id'],
+                            ':option_type' => $option['type']
+                        ]);
+    
+                        $optionId = $existingOption['id'];
+                    } else {
+                        // Insert new option
+                        $sql = "INSERT INTO item_options (menu_item_id, option_name, option_type) 
+                               VALUES (:item_id, :option_name, :option_type)";
+                        
+                        $stmt = $this->db->prepare($sql);
+                        $stmt->execute([
+                            ':item_id' => $id,
+                            ':option_name' => $option['name'],
+                            ':option_type' => $option['type']
+                        ]);
+    
+                        $optionId = $this->db->lastInsertId();
+                    }
+    
+                    // Update option values
+                    if (isset($option['options']) && is_array($option['options'])) {
+                        foreach ($option['options'] as $value) {
+                            // Check if the value already exists
+                            $sql = "SELECT id FROM option_values WHERE option_id = :option_id AND value = :value";
                             $stmt = $this->db->prepare($sql);
                             $stmt->execute([
                                 ':option_id' => $optionId,
-                                ':value' => $value['value'],
-                                ':extra_cost' => $value['extra_cost'] ?? 0
+                                ':value' => $value['name']
                             ]);
+    
+                            $existingValue = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+                            if ($existingValue) {
+                                // Update the existing value
+                                $sql = "UPDATE option_values SET extra_cost = :extra_cost 
+                                       WHERE id = :value_id";
+                                
+                                $stmt = $this->db->prepare($sql);
+                                $stmt->execute([
+                                    ':value_id' => $existingValue['id'],
+                                    ':extra_cost' => $value['extraCost'] ?? 0
+                                ]);
+                            } else {
+                                // Insert new value
+                                $sql = "INSERT INTO option_values (option_id, value, extra_cost) 
+                                       VALUES (:option_id, :value, :extra_cost)";
+                                
+                                $stmt = $this->db->prepare($sql);
+                                $stmt->execute([
+                                    ':option_id' => $optionId,
+                                    ':value' => $value['name'],
+                                    ':extra_cost' => $value['extraCost'] ?? 0
+                                ]);
+                            }
                         }
                     }
                 }
             }
-
+    
             $this->db->commit();
             return $this->getItemById($id);
         } catch (Exception $e) {
@@ -520,6 +558,7 @@ class MenuController {
             throw new Exception("Failed to update menu item");
         }
     }
+    
 
     public function deleteItem($id) {
         try {

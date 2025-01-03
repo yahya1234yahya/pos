@@ -7,6 +7,18 @@ class TableController {
         $this->db = Database::getInstance();
     }
 
+    public function getTableById($id) {
+        try {
+            $sql = "SELECT * FROM tables WHERE id = :id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':id' => $id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error in getTableById: " . $e->getMessage());
+            throw new Exception("Failed to get table: " . $e->getMessage());
+        }
+    }
+
     public function getAllTables() {
         try {
             $sql = "SELECT * FROM tables ORDER BY floor, number";

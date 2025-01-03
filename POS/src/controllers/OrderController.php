@@ -153,12 +153,10 @@ class OrderController {
             }
 
             // Update order status
-            $sql = "UPDATE orders SET status = :status, total_amount = $item['unit_price']";
+            $sql = "UPDATE orders SET status = :status";
             if ($newStatus === 'completed') {
                 $sql .= ", completed_at = CURRENT_TIMESTAMP";
             }
-
-
             $sql .= " WHERE id = :id";
 
             $stmt = $this->db->prepare($sql);

@@ -118,12 +118,14 @@ function Orders() {
       setError('Failed to logout');
     }
   };
+  const today = new Date().toISOString().split('T')[0];
 
   const filteredOrders = orders.filter(order => {
     if (filter === 'unpaid') {
       return order.status !== 'completed' && order.status !== 'cancelled';
     }
-    return true;
+    const orderDate = new Date(order.created_at).toISOString().split('T')[0];
+    return orderDate === today;
   });
 
   return (

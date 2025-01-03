@@ -45,6 +45,9 @@ try {
         exit();
     }
 
+    $currentUser = $auth->getCurrentUser();
+    $currentWaiterId = $currentUser['id'];
+
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
             if (isset($_GET['kitchen'])) {
@@ -75,16 +78,26 @@ try {
                 break;
             }
             
-            // Get all orders with optional status filter
-            $status = $_GET['status'] ?? null;
-            $orders = $status ? 
-                     $controller->getOrdersByStatus($status) : 
-                     $controller->getAllOrders();
-            
-            echo json_encode([
-                'success' => true,
-                'orders' => $orders
-            ]);
+                // Get all orders with optional status filter
+        $status = $_GET['status'] ?? null;
+        $orders = $status ? 
+        $controller->getOrdersByStatus($status) : 
+        $controller->getAllOrders();
+
+        // Filter orders by waiter_id
+        $filteredOrders = array_filter($orders, function($order) use ($currentWaiterId) {    
+            return $order['waiter_id'] == $currentWaiterId;
+        });
+
+        // Re-index the array to ensure it's a valid JSON response
+        $filteredOrders = array_values($filteredOrders);
+
+
+        // Respond with the filtered orders
+        echo json_encode([
+            'success' => true,
+            'orders' => $filteredOrders
+        ]);
             break;
 
         case 'POST':

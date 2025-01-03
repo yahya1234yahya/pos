@@ -127,14 +127,7 @@ try {
                     }
 
                     try {
-                        $itemId = $menuController->addMenuItem(
-                            $data['name'],
-                            $data['category_id'],
-                            $data['price'],
-                            $data['description'] ?? '',
-                            $data['options'] ?? []
-                        );
-
+                        $itemId = $menuController->createItem($data);
                         echo json_encode([
                             'success' => true,
                             'message' => 'Menu item added successfully',
